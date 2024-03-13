@@ -32,46 +32,47 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **********************************************************************************************/
 
-#ifndef FIERRO_SOLVER_H
-#define FIERRO_SOLVER_H
 
 #include "solver.h"
 #include "io_utils.h"
 
 
 // Headers for solver classes
-#include "SGH_solver.h"
+// #include "SGH_solver.h"
+// class Solver
 
 class Driver
 {
 public:
 
-    Driver(char* MESH);//Simulation_Parameters& _simparam);
-    ~Driver();
+    Driver(char* MESH){};//Simulation_Parameters& _simparam);
+    ~Driver(){};
 
     void initialize(int solver_count){
 
         num_solvers = solver_count;
 
-        SGH
+        // SGH
 
     }
     
     void setup() {
         for (auto & solver : solvers) {
-            solver.setup();
+            solver->setup();
         }
     }
 
     void run(){
         for (auto & solver : solvers) {
-            solver.run();
+            solver->run();
         }
     }
 
     void finalize(){
-        if (solver.finalize_flag){
-            solver.solver_finalize();
+        for (auto & solver : solvers) {
+            if (solver->finalize_flag){
+                solver->solver_finalize();
+            }
         }
     }
 
@@ -85,5 +86,3 @@ public:
     int nfea_modules;
 
 };
-
-#endif // end Header Guard

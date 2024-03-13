@@ -11,7 +11,7 @@ export scriptdir=`pwd`
 
 cd ../..
 export topdir=`pwd`
-export basedir=${topdir}/single-node
+export basedir=${topdir}/testing
 export srcdir=${basedir}/src
 export libdir=${topdir}/lib
 export matardir=${libdir}/Elements/matar

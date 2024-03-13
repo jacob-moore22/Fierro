@@ -35,8 +35,8 @@ set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} ${VECTOR_Fortran
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${VECTOR_C_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${VECTOR_CXX_FLAGS}")
 
-add_subdirectory(Yaml-Serializable)
-add_subdirectory(Simulation_Parameters)
+
+include_directories(common)
 
 if(BUILD_KOKKOS_SGH)
 #  if(NOT BUILD_IMPLICIT_SOLVER)
@@ -67,4 +67,10 @@ endif()
 if(BUILD_EXPLICIT_SOLVER)
   add_subdirectory(Explicit-Lagrange)
 endif()
+
+
+
+add_executable(Fierro main.cpp solver.cpp)
+
+target_link_libraries(Fierro sgh_solver)
 

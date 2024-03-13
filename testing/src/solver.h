@@ -35,9 +35,9 @@
 #ifndef FIERRO_SOLVER_H
 #define FIERRO_SOLVER_H
 
-#include "utilities.h"
+// #include "utilities.h"
 #include "matar.h"
-#include "elements.h"
+// #include "elements.h"
 // #include "node_combination.h"
 // #include "Simulation_Parameters/Simulation_Parameters.h"
 // #include "FEA_Module.h"
@@ -70,11 +70,11 @@ public:
 
     virtual void run() = 0;
 
-    virtual void solver_setup() {}
+    void solver_setup() {}
 
-    virtual void solver_finalize() {}
+    void solver_finalize() {}
 
-    virtual void exit_solver(int status);
+    void exit_solver(int status);
 
     // debug and system functions/variables
     double CPU_Time();
@@ -93,8 +93,10 @@ public:
     int nfea_modules;
     // int displacement_module;
 
-    elements::Element2D* elem2D;
-    elements::Element3D* elem;
+    bool finalize_flag = false;
+
+    // elements::Element2D* elem2D;
+    // elements::Element3D* elem;
 
 
     

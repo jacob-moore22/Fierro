@@ -38,17 +38,12 @@
 #include "mesh.h"
 #include "state.h"
 #include "matar.h"
-#include "elements.h"
+// #include "elements.h"
 #include "solver.h"
 // #include "FEA_Module.h"
 // #include "material_models.h"
 
 
-class Solver;
-
-class Simulation_Parameters;
-
-class SGH_Parameters;
 
 struct material_t;
 
@@ -69,17 +64,36 @@ class SGH : public Solver
 {
 public:
 
-    SGH(); //SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
-    ~SGH();
+    char* MESH;
+
+    SGH() : Solver(MESH){} //SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
+    ~SGH(){}
 
     // initialize data for boundaries of the model and storage for boundary conditions and applied loads
-    void sgh_interface_setup(node_t& node, elem_t& elem, corner_t& corner);
+    // void sgh_interface_setup(node_t& node, elem_t& elem, corner_t& corner){};
 
-    void setup();
+    void setup(){}
 
-    void cleanup_material_models();
+    void write_outputs(
+        const mesh_t&              mesh,
+        DViewCArrayKokkos<double>& node_coords,
+        DViewCArrayKokkos<double>& node_vel,
+        DViewCArrayKokkos<double>& node_mass,
+        DViewCArrayKokkos<double>& elem_den,
+        DViewCArrayKokkos<double>& elem_pres,
+        DViewCArrayKokkos<double>& elem_stress,
+        DViewCArrayKokkos<double>& elem_sspd,
+        DViewCArrayKokkos<double>& elem_sie,
+        DViewCArrayKokkos<double>& elem_vol,
+        DViewCArrayKokkos<double>& elem_mass,
+        DViewCArrayKokkos<size_t>& elem_mat_id,
+        CArray<double>&            graphics_times,
+        size_t&                    graphics_id,
+        const double               time_value);
 
-    void module_cleanup();
+    // void cleanup_material_models();
+
+    // void module_cleanup();
 
     void solve(CArrayKokkos<material_t>&  material,
                CArrayKokkos<boundary_t>&  boundary,

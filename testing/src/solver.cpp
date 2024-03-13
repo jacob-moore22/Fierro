@@ -42,12 +42,9 @@
 #include <math.h>  // fmin, fmax, abs note: fminl is long
 #include <sys/stat.h>
 #include <set>
-#include <mpi.h>
 
-
-
-
-
+// #include "matar.h"
+#include "solver.h"
 // debug and performance includes
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -55,7 +52,7 @@
 
 
 
-Solver::Solver(char* MESH); // Simulation_Parameters& _simparam) : simparam(_simparam)
+Solver::Solver(char* MESH) // Simulation_Parameters& _simparam) : simparam(_simparam)
 {
     
 }
@@ -69,19 +66,19 @@ Solver::Solver(char* MESH); // Simulation_Parameters& _simparam) : simparam(_sim
 /////////////////////////////////////////////////////////////////////////////
 void Solver::exit_solver(int status)
 {
-    Kokkos::finalize();
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // MPI_Finalize();
-    exit(status);
+    // Kokkos::finalize();
+    // // MPI_Barrier(MPI_COMM_WORLD);
+    // // MPI_Finalize();
+    // exit(status);
 }
 
 Solver::~Solver()
 {
-    // destroy FEA modules
-    for (int imodule = 0; imodule < nfea_modules; imodule++)
-    {
-        delete fea_modules[imodule];
-    }
+    // // destroy FEA modules
+    // for (int imodule = 0; imodule < nfea_modules; imodule++)
+    // {
+    //     delete fea_modules[imodule];
+    // }
 }
 
 

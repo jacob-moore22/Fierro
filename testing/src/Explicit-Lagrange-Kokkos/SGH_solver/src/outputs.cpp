@@ -1,10 +1,12 @@
 #include "mesh.h"
 #include "state.h"
+#include "sgh_solver.h"
+
 
 #include <cstring>
 #include <sys/stat.h>
 
-void write_outputs(const mesh_t&              mesh,
+void SGH::write_outputs(const mesh_t&              mesh,
                    DViewCArrayKokkos<double>& node_coords,
                    DViewCArrayKokkos<double>& node_vel,
                    DViewCArrayKokkos<double>& node_mass,
