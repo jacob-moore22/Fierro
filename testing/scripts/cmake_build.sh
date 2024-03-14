@@ -8,9 +8,8 @@ mkdir -p ${SGH_BUILD_DIR}
 
 cmake_options=(
 -D BUILD_EXPLICIT_SOLVER=OFF
--D KOKKOS=ON
--D CMAKE_PREFIX_PATH=${KOKKOS_INSTALL_DIR}
--D CMAKE_CXX_FLAGS="-I${matardir}/src"
+-D CMAKE_PREFIX_PATH="${MATAR_INSTALL_DIR};${KOKKOS_INSTALL_DIR}"
+#-D CMAKE_CXX_FLAGS="-I${matardir}/src"
 )
 
 if [ "$solver" = "1DSGH" ]; then
@@ -27,7 +26,7 @@ fi
 echo "CMake Options: ${cmake_options[@]}"
 
 # Configure SGH
-cmake  "${cmake_options[@]}" -B "${SGH_BUILD_DIR}" -S "${SGH_BASE_DIR}" #--trace-expand 
+cmake "${cmake_options[@]}" -B "${SGH_BUILD_DIR}" -S "${SGH_BASE_DIR}"
 
 # Build SGH
 make -C "${SGH_BUILD_DIR}" -j${SGH_BUILD_CORES}

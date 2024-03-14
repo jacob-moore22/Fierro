@@ -36,6 +36,7 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${VECTOR_C_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${VECTOR_CXX_FLAGS}")
 
 find_package(Kokkos REQUIRED)
+find_package(Matar REQUIRED)
 
 
 # if(BUILD_KOKKOS_SGH)
@@ -59,6 +60,18 @@ find_package(Kokkos REQUIRED)
 
 
 message("\n ****** ADDING FIERRO EXECUTABLE ******** \n ")
+
+add_definitions(-DHAVE_KOKKOS=1)
+
+if (CUDA)
+  add_definitions(-DHAVE_CUDA=1)
+elseif (HIP)
+  add_definitions(-DHAVE_HIP=1)
+elseif (OPENMP)
+  add_definitions(-DHAVE_OPENMP=1)
+elseif (THREADS)
+  add_definitions(-DHAVE_THREADS=1)
+endif()
 
 add_executable(Fierro main.cpp solver.cpp )
 

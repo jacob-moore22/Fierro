@@ -39,7 +39,8 @@
 
 
 // Headers for solver classes
-#include "Solvers/SGH_solver/include/sgh_solver.h"
+//#include "Solvers/SGH_solver/include/sgh_solver.h"
+#include "sgh_solver.h"
 
 
 class Driver
