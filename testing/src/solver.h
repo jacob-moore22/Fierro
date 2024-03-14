@@ -36,7 +36,7 @@
 #define FIERRO_SOLVER_H
 
 // #include "utilities.h"
-#include "matar.h"
+// #include "matar.h"
 // #include "elements.h"
 // #include "node_combination.h"
 // #include "Simulation_Parameters/Simulation_Parameters.h"
@@ -47,7 +47,6 @@
 #include <map>
 #include <memory>
 
-using namespace mtr;
 
 class Solver
 {

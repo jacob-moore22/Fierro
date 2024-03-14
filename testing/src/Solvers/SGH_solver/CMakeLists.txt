@@ -10,6 +10,7 @@ include_directories(src)
 
 
 set(SRC_Files 
+src/sgh_solver.cpp
 src/boundary.cpp 
 src/energy_sgh.cpp
 src/eos.cpp
@@ -23,16 +24,16 @@ src/user_mat.cpp
 src/user_mat_init.cpp
 src/outputs.cpp)
 
-set(SGH_Solver_SRC src/sgh_solver.cpp )
+# set(SGH_Solver_SRC src/sgh_solver.cpp )
 
 message("\n ****** ADDING SGH LIBRARY ******** \n ")
 
-add_library(sgh_solver OBJECT ${SRC_Files} ${SGH_Solver_SRC}) # 
-target_link_libraries(sgh_solver matar Kokkos::kokkos)
+add_library(sgh_solver ${SRC_Files} ) # ${SGH_Solver_SRC} 
 
-install(
-  TARGETS sgh_solver
-)
+
+
+target_link_libraries(sgh_solver Kokkos::kokkos)
+
 
 
 if (CUDA)

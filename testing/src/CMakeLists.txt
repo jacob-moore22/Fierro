@@ -38,13 +38,15 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${VECTOR_CXX_FLAGS}")
 find_package(Kokkos REQUIRED)
 
 
-# if(BUILD_KOKKOS_SGH)
-# #  if(NOT BUILD_IMPLICIT_SOLVER)
-# #    find_package(Kokkos REQUIRED)
-# #    add_definitions(-DHAVE_KOKKOS=1#)
-# #  endif()
-#   include_directories(Solvers/SGH_solver)
-# endif()
+if(BUILD_KOKKOS_SGH)
+#  if(NOT BUILD_IMPLICIT_SOLVER)
+#    find_package(Kokkos REQUIRED)
+#    add_definitions(-DHAVE_KOKKOS=1#)
+#  endif()
+  # include_directories(Solvers/SGH_solver)
+  # include_directories(Solvers/SGH_solver/include)
+  add_subdirectory(Solvers/SGH_solver)
+endif()
 
 
 
@@ -54,13 +56,11 @@ find_package(Kokkos REQUIRED)
 #   add_subdirectory(Solvers/SGH_solver)
 # endif()
 
-include_directories(common)
-include_directories(Solvers/SGH_solver/include)
-add_subdirectory(Solvers/SGH_solver)
+
 
 message("\n ****** ADDING FIERRO EXECUTABLE ******** \n ")
 
-add_executable(Fierro main.cpp solver.cpp)
+add_executable(Fierro solver.cpp main.cpp )
 
 
-target_link_libraries(Fierro matar sgh_solver Kokkos::kokkos)
+target_link_libraries(Fierro PRIVATE sgh_solver)

@@ -35,8 +35,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 include_directories(../lib/Elements/matar)
 add_subdirectory(../lib/Elements/matar cbin)
+
 include_directories(src)
 add_subdirectory(src)
+
 
 # Add uninstall target
 if(NOT TARGET uninstall)

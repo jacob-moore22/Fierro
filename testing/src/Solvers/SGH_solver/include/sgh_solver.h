@@ -39,8 +39,6 @@
 #include "solver.h"
 
 
-
-
 struct material_t;
 struct boundary_t;
 struct node_t;
@@ -74,6 +72,10 @@ public:
     // void sgh_interface_setup(node_t& node, elem_t& elem, corner_t& corner){};
 
     void setup();
+
+    void run(){
+        std::cout<<"In run function in sgh solver"<<std::endl;
+    }
 
     void write_outputs(
         const mesh_t&              mesh,

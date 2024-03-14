@@ -32,15 +32,15 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **********************************************************************************************/
 
-
+// #include "matar.h"
 #include "solver.h"
-#include "matar.h"
+
 // #include "io_utils.h"
 
 
 // Headers for solver classes
 #include "Solvers/SGH_solver/include/sgh_solver.h"
-// class Solver
+
 
 class Driver
 {
@@ -56,6 +56,8 @@ public:
     void initialize(int solver_count){
 
         num_solvers = solver_count;
+
+        SGH sgh_solver;
     }
     
     void setup() {
