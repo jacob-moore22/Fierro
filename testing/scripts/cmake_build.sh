@@ -27,7 +27,7 @@ fi
 echo "CMake Options: ${cmake_options[@]}"
 
 # Configure SGH
-cmake  --trace-expand "${cmake_options[@]}" -B "${SGH_BUILD_DIR}" -S "${SGH_BASE_DIR}"
+cmake  "${cmake_options[@]}" -B "${SGH_BUILD_DIR}" -S "${SGH_BASE_DIR}" #--trace-expand 
 
 # Build SGH
 make -C "${SGH_BUILD_DIR}" -j${SGH_BUILD_CORES}
