@@ -64,15 +64,15 @@ class SGH : public Solver
 {
 public:
 
-    char* MESH;
+    char* MESH_FILE;
 
-    SGH() : Solver(MESH){} //SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
-    ~SGH(){}
+    SGH(); //SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
+    ~SGH();
 
     // initialize data for boundaries of the model and storage for boundary conditions and applied loads
     // void sgh_interface_setup(node_t& node, elem_t& elem, corner_t& corner){};
 
-    void setup(){}
+    void setup();
 
     void write_outputs(
         const mesh_t&              mesh,

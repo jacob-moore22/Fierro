@@ -43,7 +43,7 @@
 #include <sys/stat.h>
 #include <set>
 
-// #include "matar.h"
+#include "matar.h"
 #include "solver.h"
 // debug and performance includes
 #include <sys/time.h>

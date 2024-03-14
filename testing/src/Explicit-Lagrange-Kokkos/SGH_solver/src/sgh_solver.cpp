@@ -11,14 +11,11 @@
  This program is open source under the BSD-3 License.
  Redistribution and use in source and binary forms, with or without modification, are permitted
  provided that the following conditions are met:
- 
  1.  Redistributions of source code must retain the above copyright notice, this list of
  conditions and the following disclaimer.
- 
  2.  Redistributions in binary form must reproduce the above copyright notice, this list of
  conditions and the following disclaimer in the documentation and/or other materials
  provided with the distribution.
- 
  3.  Neither the name of the copyright holder nor the names of its contributors may be used
  to endorse or promote products derived from this software without specific prior
  written permission.
@@ -33,32 +30,42 @@
  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
- Author: Kevin Welsh (kwelsh@lanl.gov)
  **********************************************************************************************/
-#pragma once
-#ifndef YAML_BASE_H
-#define YAML_BASE_H
 
-#include "Yaml.hpp"
-#include <array>
+#include "matar.h"
+// #include "elements.h"
+#include "solver.h"
 
-namespace Yaml {
-    template<typename T> void serialize(const T& v, Yaml::Node& node);
-    template<typename T> void deserialize(T& v, Yaml::Node& node, bool raw=false);
-    template<typename T, size_t N> void serialize(const T(&v)[N], Yaml::Node& node);
-    template<typename T, size_t N> void deserialize(T(&v)[N], Yaml::Node& node, bool raw=false);
-    template<typename T, size_t N> void serialize(const std::array<T, N>& v, Yaml::Node& node);
-    template<typename T, size_t N> void deserialize(std::array<T, N>& v, Yaml::Node& node, bool raw=false);
-    
-    template<>
-    inline void deserialize<bool>(bool& v, Yaml::Node& node, bool raw) {
-        if (!node.IsNone()) 
-            v = node.As<bool>();
-    }
-    template<>
-    inline void serialize<bool>(const bool& v, Yaml::Node& node) {
-        node = v ? "True" : "False";
-    }
-}
-#endif
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+///
+/// \class SGH
+///
+/// \brief Class for containing functions required to perform SGH
+///
+/// This class containts the requisite functions requited to perform
+/// staggered grid hydrodynamics (SGH) which is equivalent to a lumped
+/// mass finite element (FE) scheme.
+///
+/////////////////////////////////////////////////////////////////////////////
+class SGH : public Solver
+{
+public:
+
+    char* MESH_FILE;
+
+    SGH() : Solver(MESH_FILE){} //SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
+    ~SGH(){}
+
+    // initialize data for boundaries of the model and storage for boundary conditions and applied loads
+    // void sgh_interface_setup(node_t& node, elem_t& elem, corner_t& corner){};
+
+    void setup(){}
+
+ 
+
+};
+
+

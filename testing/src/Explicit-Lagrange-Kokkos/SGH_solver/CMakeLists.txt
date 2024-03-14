@@ -6,6 +6,7 @@ add_definitions(-DHAVE_KOKKOS=1)
 
 include_directories(include)
 include_directories(src)
+# include_directories(../../common)
 
 
 set(SRC_Files 
@@ -22,11 +23,11 @@ src/user_mat.cpp
 src/user_mat_init.cpp
 src/outputs.cpp)
 
-# set(SGH_Module_SRC src/sgh_solver.cpp )
+set(SGH_Solver_SRC src/sgh_solver.cpp )
 
+message("\n ****** ADDING SGH LIBRARY ******** \n ")
 
-
-add_library(sgh_solver OBJECT ${SRC_Files} ) # ${SGH_Module_SRC}
+add_library(sgh_solver OBJECT ${SRC_Files} ${SGH_Solver_SRC}) # 
 
 if (CUDA)
   add_definitions(-DHAVE_CUDA=1)
@@ -38,7 +39,7 @@ elseif (THREADS)
   add_definitions(-DHAVE_THREADS=1)
 endif()
 
-target_link_libraries(sgh_solver matar Kokkos::kokkos)
+target_link_libraries(sgh_solver Kokkos::kokkos)
 
 # target_link_libraries(FierroSGH matar Kokkos::kokkos)
 

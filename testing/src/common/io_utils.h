@@ -32,12 +32,10 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **********************************************************************************************/
 
-#ifndef FIERRO_SOLVER_H
-#define FIERRO_SOLVER_H
 
-#include "utilities.h"
+// #include "utilities.h"
 #include "matar.h"
-#include "elements.h"
+// #include "elements.h"
 
 #include "mesh.h"
 #include "state.h"
@@ -80,7 +78,7 @@ public:
     {
         if(MESH == NULL){
             printf("No mesh given\n");
-            exit();
+            exit(0);
         }
 
         const size_t rk_level = 0;
@@ -212,4 +210,3 @@ public:
     
 };
 
-#endif // end Header Guard

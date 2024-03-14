@@ -36,41 +36,41 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${VECTOR_C_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${VECTOR_CXX_FLAGS}")
 
 
+
+
+find_package(Kokkos REQUIRED)
+
+
+# if(BUILD_KOKKOS_SGH)
+# #  if(NOT BUILD_IMPLICIT_SOLVER)
+# #    find_package(Kokkos REQUIRED)
+# #    add_definitions(-DHAVE_KOKKOS=1#)
+# #  endif()
+#   include_directories(Explicit-Lagrange-Kokkos/SGH_solver)
+# endif()
+
+
+
+# if(BUILD_KOKKOS_SGH)
+#   message("\nbuilding SGH!  Here are the details: ")
+
+#   add_subdirectory(Explicit-Lagrange-Kokkos/SGH_solver)
+# endif()
+
 include_directories(common)
+include_directories(Explicit-Lagrange-Kokkos/SGH_solver/include)
 
-if(BUILD_KOKKOS_SGH)
-#  if(NOT BUILD_IMPLICIT_SOLVER)
-#    find_package(Kokkos REQUIRED)
-#    add_definitions(-DHAVE_KOKKOS=1#)
-#  endif()
-  include_directories(Explicit-Lagrange-Kokkos/SGH_solver)
-endif()
-
-if(BUILD_1D_KOKKOS_SGH)
-#  if(NOT BUILD_IMPLICIT_SOLVER)
-#    find_package(Kokkos REQUIRED)
-#    add_definitions(-DHAVE_KOKKOS=1)
-#  endif()
-  include_directories(Explicit-Lagrange-Kokkos/1D_SGH_solver)
-
-  message("\nbuilding 1D SGH!  Here are the details: ")
-
-  add_subdirectory(Explicit-Lagrange-Kokkos/1D_SGH_solver)
-endif()
-
-if(BUILD_KOKKOS_SGH)
-  message("\nbuilding SGH!  Here are the details: ")
-
-  add_subdirectory(Explicit-Lagrange-Kokkos/SGH_solver)
-endif()
-
-if(BUILD_EXPLICIT_SOLVER)
-  add_subdirectory(Explicit-Lagrange)
-endif()
-
-
+message("\n ****** ADDING FIERRO EXECUTABLE ******** \n ")
 
 add_executable(Fierro main.cpp solver.cpp)
 
-target_link_libraries(Fierro sgh_solver)
+
+message("\nbuilding SGH!  Here are the details: ")
+
+add_subdirectory(Explicit-Lagrange-Kokkos/SGH_solver)
+
+
+
+
+target_link_libraries(Fierro matar sgh_solver )
 
