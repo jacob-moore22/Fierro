@@ -63,10 +63,4 @@ message("\n ****** ADDING FIERRO EXECUTABLE ******** \n ")
 add_executable(Fierro main.cpp solver.cpp)
 
 
-
-
-
-
-
-target_link_libraries(Fierro sgh_solver)
-
+target_link_libraries(Fierro matar sgh_solver Kokkos::kokkos)

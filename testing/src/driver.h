@@ -39,22 +39,23 @@
 
 
 // Headers for solver classes
-// #include "Explicit-Lagrange-Kokkos/SGH_solver/include/sgh_solver.h"
+#include "Solvers/SGH_solver/include/sgh_solver.h"
 // class Solver
 
 class Driver
 {
 public:
 
-    Driver(char* MESH){};//Simulation_Parameters& _simparam);
+    char* mesh_file;
+
+    Driver(char* MESH){
+        mesh_file = MESH;
+    };//Simulation_Parameters& _simparam);
     ~Driver(){};
 
     void initialize(int solver_count){
 
         num_solvers = solver_count;
-
-        
-
     }
     
     void setup() {

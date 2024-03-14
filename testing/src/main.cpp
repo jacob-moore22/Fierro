@@ -7,7 +7,7 @@
 
 #include <Kokkos_Core.hpp>
 
-
+#include "matar.h"
 #include "driver.h"
 
 

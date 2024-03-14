@@ -32,22 +32,23 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **********************************************************************************************/
 
-#ifndef FEA_MODULE_SGH_H
-#define FEA_MODULE_SGH_H
+#ifndef SGH_SOLVER_H
+#define SGH_SOLVER_H
 
-#include "mesh.h"
-#include "state.h"
 #include "matar.h"
-// #include "elements.h"
 #include "solver.h"
-// #include "FEA_Module.h"
-// #include "material_models.h"
+
 
 
 
 struct material_t;
-
 struct boundary_t;
+struct node_t;
+struct elem_t;
+struct corner_t;
+struct mesh_t;
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 ///

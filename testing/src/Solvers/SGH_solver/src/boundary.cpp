@@ -18,7 +18,7 @@
  * \param node_vel A view into the nodal velocity
  * \param time_value Current simulation time, uesd to apply transient boundary conditions
  */
-void SGH::boundary_velocity(const mesh_t&                   mesh,
+void SGH::boundary_velocity(const mesh_t&              mesh,
                        const CArrayKokkos<boundary_t>& boundary,
                        DViewCArrayKokkos<double>&      node_vel,
                        const double                    time_value)
