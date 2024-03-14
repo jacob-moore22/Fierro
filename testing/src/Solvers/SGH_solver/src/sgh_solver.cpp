@@ -33,11 +33,7 @@
  **********************************************************************************************/
 
 #include "matar.h"
-// #include "elements.h"
 #include "solver.h"
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////
 ///
@@ -63,9 +59,6 @@ public:
     // void sgh_interface_setup(node_t& node, elem_t& elem, corner_t& corner){};
 
     void setup(){}
-
- 
-
 };
 
 

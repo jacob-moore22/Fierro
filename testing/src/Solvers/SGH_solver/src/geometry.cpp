@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // This code handles the geometric information for the mesh for the SHG solver
 // ------------------------------------------------------------------------------
-#include "matar.h"
+// #include "matar.h"
 #include "mesh.h"
 #include "state.h"
 #include "sgh_solver.h"
