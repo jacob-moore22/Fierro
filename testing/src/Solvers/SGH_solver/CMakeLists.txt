@@ -6,8 +6,6 @@ add_definitions(-DHAVE_KOKKOS=1)
 
 include_directories(include)
 include_directories(src)
-# include_directories(../../common)
-
 
 set(SRC_Files 
 src/boundary.cpp 
@@ -41,5 +39,4 @@ endif()
 
 target_link_libraries(sgh_solver Kokkos::kokkos)
 
-# target_link_libraries(FierroSGH matar Kokkos::kokkos)
 

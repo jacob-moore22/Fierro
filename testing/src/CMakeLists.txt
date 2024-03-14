@@ -35,9 +35,6 @@ set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} ${VECTOR_Fortran
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${VECTOR_C_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${VECTOR_CXX_FLAGS}")
 
-
-
-
 find_package(Kokkos REQUIRED)
 
 
@@ -46,7 +43,7 @@ find_package(Kokkos REQUIRED)
 # #    find_package(Kokkos REQUIRED)
 # #    add_definitions(-DHAVE_KOKKOS=1#)
 # #  endif()
-#   include_directories(Explicit-Lagrange-Kokkos/SGH_solver)
+#   include_directories(Solvers/SGH_solver)
 # endif()
 
 
@@ -54,23 +51,22 @@ find_package(Kokkos REQUIRED)
 # if(BUILD_KOKKOS_SGH)
 #   message("\nbuilding SGH!  Here are the details: ")
 
-#   add_subdirectory(Explicit-Lagrange-Kokkos/SGH_solver)
+#   add_subdirectory(Solvers/SGH_solver)
 # endif()
 
 include_directories(common)
-include_directories(Explicit-Lagrange-Kokkos/SGH_solver/include)
+include_directories(Solvers/SGH_solver/include)
+add_subdirectory(Solvers/SGH_solver)
 
 message("\n ****** ADDING FIERRO EXECUTABLE ******** \n ")
 
 add_executable(Fierro main.cpp solver.cpp)
 
 
-message("\nbuilding SGH!  Here are the details: ")
-
-add_subdirectory(Explicit-Lagrange-Kokkos/SGH_solver)
 
 
 
 
-target_link_libraries(Fierro matar sgh_solver )
+
+target_link_libraries(Fierro sgh_solver)
 

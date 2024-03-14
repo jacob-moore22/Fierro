@@ -19,7 +19,7 @@ export builddir=${basedir}/${my_build}
 export installdir=${basedir}/install/kokkos-${kokkos_build_type}
 
 export SGH_BASE_DIR=${basedir}
-export SGH_SOURCE_DIR=${srcdir}/Explicit-Lagrange-Kokkos/SGH_solver
+export SGH_SOURCE_DIR=${srcdir}/Solvers/SGH_solver
 export SGH_BUILD_DIR=${builddir}
 
 export KOKKOS_SOURCE_DIR=${matardir}/src/Kokkos/kokkos
