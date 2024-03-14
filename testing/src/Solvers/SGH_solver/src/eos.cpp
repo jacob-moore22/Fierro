@@ -8,7 +8,7 @@
 // This is the gamma-law gas eos
 // ------------------------------------------------------------------------------
 KOKKOS_FUNCTION
-void SGH::ideal_gas(const DViewCArrayKokkos<double>& elem_pres,
+void ideal_gas(const DViewCArrayKokkos<double>& elem_pres,
                    const DViewCArrayKokkos<double>& elem_stress,
                    const size_t                     elem_gid,
                    const size_t                     mat_id,

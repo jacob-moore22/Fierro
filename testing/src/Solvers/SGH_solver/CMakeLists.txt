@@ -22,7 +22,6 @@ include_directories(src)
 
 
 set(SRC_Files 
-src/sgh_solver.cpp
 src/boundary.cpp 
 src/energy_sgh.cpp
 src/eos.cpp
@@ -34,7 +33,9 @@ src/sgh_solve.cpp
 src/time_integration.cpp
 src/user_mat.cpp
 src/user_mat_init.cpp
-src/outputs.cpp)
+src/outputs.cpp
+src/setup.cpp
+src/read_mesh.cpp)
 
 # set(SGH_Solver_SRC src/sgh_solver.cpp )
 

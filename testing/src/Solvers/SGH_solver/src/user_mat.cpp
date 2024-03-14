@@ -12,7 +12,7 @@
 // The pressure can also be calculated using p = -1/3 Trace(Stress)
 // ------------------------------------------------------------------------------
 KOKKOS_FUNCTION
-void SGH::user_eos_model(const DViewCArrayKokkos<double>& elem_pres,
+void user_eos_model(const DViewCArrayKokkos<double>& elem_pres,
                     const DViewCArrayKokkos<double>& elem_stress,
                     const size_t                     elem_gid,
                     const size_t                     mat_id,
@@ -43,7 +43,7 @@ void SGH::user_eos_model(const DViewCArrayKokkos<double>& elem_pres,
 // This is the user material model function for the stress tensor
 // ------------------------------------------------------------------------------
 KOKKOS_FUNCTION
-void SGH::user_strength_model(const DViewCArrayKokkos<double>& elem_pres,
+void user_strength_model(const DViewCArrayKokkos<double>& elem_pres,
                          const DViewCArrayKokkos<double>& elem_stress,
                          const size_t                     elem_gid,
                          const size_t                     mat_id,
@@ -78,7 +78,7 @@ void SGH::user_strength_model(const DViewCArrayKokkos<double>& elem_pres,
 // This is the user material model function
 // ------------------------------------------------------------------------------
 KOKKOS_FUNCTION
-void SGH::user_strength_model_vpsc(const DViewCArrayKokkos<double>& elem_pres,
+void user_strength_model_vpsc(const DViewCArrayKokkos<double>& elem_pres,
                               const DViewCArrayKokkos<double>& elem_stress,
                               const size_t                     elem_gid,
                               const size_t                     mat_id,

@@ -46,7 +46,7 @@ build_action="full-app"
 solver="SGH"
 machine="linux"
 kokkos_build_type="serial"
-build_cores="1"
+build_cores="6"
 
 # Define arrays of valid options
 valid_build_action=("full-app" "set-env" "install-kokkos" "fierro")

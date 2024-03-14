@@ -37,14 +37,11 @@
 
 #include "matar.h"
 #include "solver.h"
+#include "mesh.h"
+#include "state.h"
 
 
-struct material_t;
-struct boundary_t;
-struct node_t;
-struct elem_t;
-struct corner_t;
-struct mesh_t;
+
 
 using namespace mtr; // matar namespace
 
@@ -63,19 +60,382 @@ class SGH : public Solver
 {
 public:
 
-    char* MESH_FILE;
+    char* mesh_file;
 
-    SGH(); //SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
-    ~SGH();
+    // ==============================================================================
+    //   Variables, setting default inputs
+    // ==============================================================================
+
+    // --- num vars ----
+    size_t num_dims = 3;
+
+    size_t num_materials;
+    size_t num_state_vars;
+
+    size_t num_fills;
+    size_t num_bcs;
+
+    // --- Graphics output variables ---
+    size_t graphics_id       = 0;
+    size_t graphics_cyc_ival = 50;
+
+    CArray<double> graphics_times;
+    double         graphics_dt_ival = 1.0e8;
+    double         graphics_time    = graphics_dt_ival; // the times for writing graphics dump
+
+    // --- Time and cycling variables ---
+    double time_value = 0.0;
+    double time_final = 1.e16;
+    double dt       = 1.e-8;
+    double dt_max   = 1.0e-2;
+    double dt_min   = 1.0e-8;
+    double dt_cfl   = 0.4;
+    double dt_start = 1.0e-8;
+
+    size_t rk_num_stages = 2;
+    size_t rk_num_bins   = 2;
+
+    size_t cycle      = 0;
+    size_t cycle_stop = 1000000000;
+
+    // --- Precision variables ---
+    double fuzz  = 1.0e-16; // machine precision
+    double tiny  = 1.0e-12; // very very small (between real_t and single)
+    double small = 1.0e-8;   // single precision
+
+
+    // ---------------------------------------------------------------------
+    //    state data type declarations
+    // ---------------------------------------------------------------------
+    node_t                   node;
+    elem_t                   elem;
+    corner_t                 corner;
+    CArrayKokkos<material_t> material;
+    int max_num_state_vars = 6;
+    CArrayKokkos<double>     state_vars; // array to hold init model variables
+
+    // ---------------------------------------------------------------------
+    //    mesh data type declarations
+    // ---------------------------------------------------------------------
+    mesh_t                   mesh;
+    CArrayKokkos<mat_fill_t> mat_fill;
+    CArrayKokkos<boundary_t> boundary;
+
+    // Dual views for nodal data
+    DViewCArrayKokkos<double> node_coords;
+    DViewCArrayKokkos<double> node_vel;
+    DViewCArrayKokkos<double> node_mass;
+
+    // Dual views for element data
+    DViewCArrayKokkos<double> elem_den;
+    DViewCArrayKokkos<double> elem_pres;
+    DViewCArrayKokkos<double> elem_stress;
+    DViewCArrayKokkos<double> elem_sspd;
+    DViewCArrayKokkos<double> elem_sie;
+    DViewCArrayKokkos<double> elem_vol;
+    DViewCArrayKokkos<double> elem_div;
+    DViewCArrayKokkos<double> elem_mass;
+    DViewCArrayKokkos<size_t> elem_mat_id;
+    DViewCArrayKokkos<double> elem_statev;
+
+
+    // Dual Views of the corner struct variables
+    DViewCArrayKokkos<double> corner_force;
+    DViewCArrayKokkos<double> corner_mass;
+
+
+
+    SGH(char* MESH_FILE) : Solver(MESH_FILE){//SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
+
+        mesh_file = MESH_FILE;
+
+    } 
+    ~SGH() = default;
 
     // initialize data for boundaries of the model and storage for boundary conditions and applied loads
     // void sgh_interface_setup(node_t& node, elem_t& elem, corner_t& corner){};
 
-    void setup();
+    void setup(){
+
+        std::cout<<"In setup function in sgh solver"<<std::endl;
+
+        // Dimensions
+        num_dims = 3;
+
+        // ---- time varaibles and cycle info ----
+        time_final = 1.0;  // 1.0 for Sedov
+        dt_min     = 1.e-8;
+        dt_max     = 1.e-2;
+        dt_start   = 1.e-5;
+        cycle_stop = 100000;
+
+        // ---- graphics information ----
+        graphics_times = CArray<double> (20000);
+        graphics_cyc_ival = 1000000;
+        graphics_dt_ival  = 0.25;
+
+        // --- number of material regions ---
+        num_materials = 1;
+        material      = CArrayKokkos<material_t>(num_materials); // create material
+
+        // --- declare model state variable array size ---
+        state_vars = CArrayKokkos<double>(num_materials, max_num_state_vars); // init values
+
+        // --- number of fill regions ---
+        num_fills = 2;  // =2 for Sedov
+        mat_fill  = CArrayKokkos<mat_fill_t>(num_fills);  // create fills
+
+        // --- number of boundary conditions ---
+        num_bcs  = 6; // =6 for Sedov
+        boundary = CArrayKokkos<boundary_t>(num_bcs);  // create boundaries
+
+        RUN({
+            // gamma law model
+            // statev(0) = gamma
+            // statev(1) = minimum sound speed
+            // statev(2) = specific heat
+            // statev(3) = ref temperature
+            // statev(4) = ref density
+            // statev(5) = ref specific internal energy
+
+            material(0).eos_model = ideal_gas; // EOS model is required
+
+            material(0).strength_type  = model::none;
+            material(0).strength_setup = model_init::input; // not need, the input is the default
+            material(0).strength_model = NULL;  // not needed, but illistrates the syntax
+
+            material(0).q1   = 1.0;            // accoustic coefficient
+            material(0).q2   = 1.3333;         // linear slope of UsUp for Riemann solver
+            material(0).q1ex = 1.0;            // accoustic coefficient in expansion
+            material(0).q2ex = 0.0;            // linear slope of UsUp in expansion
+
+            material(0).num_state_vars = 3;  // actual num_state_vars
+            state_vars(0, 0) = 5.0 / 3.0; // gamma value
+            state_vars(0, 1) = 1.0E-14; // minimum sound speed
+            state_vars(0, 2) = 1.0;     // specific heat
+
+            // global initial conditions
+            mat_fill(0).volume = region::global; // fill everywhere
+            mat_fill(0).mat_id = 0;              // material id
+            mat_fill(0).den    = 1.0;            // intial density
+            mat_fill(0).sie    = 1.e-10;         // intial specific internal energy
+
+            mat_fill(0).velocity = init_conds::cartesian;
+            mat_fill(0).u = 0.0;   // initial x-dir velocity
+            mat_fill(0).v = 0.0;   // initial y-dir velocity
+            mat_fill(0).w = 0.0;   // initial z-dir velocity
+
+            // energy source initial conditions
+            mat_fill(1).volume  = region::sphere; // fill a sphere
+            mat_fill(1).mat_id  = 0;             // material id
+            mat_fill(1).radius1 = 0.0;           // inner radius of fill region
+            mat_fill(1).radius2 = 1.2 / 8.0;       // outer radius of fill region
+            mat_fill(1).den     = 1.0;           // initial density
+            mat_fill(1).sie     = (963.652344 *
+                                   pow((1.2 / 30.0), 3)) / pow((mat_fill(1).radius2), 3);
+
+            mat_fill(1).velocity = init_conds::cartesian;
+            mat_fill(1).u = 0.0;   // initial x-dir velocity
+            mat_fill(1).v = 0.0;   // initial y-dir velocity
+            mat_fill(1).w = 0.0;   // initial z-dir velocity
+
+            // ---- boundary conditions ---- //
+
+            // Tag X plane
+            boundary(0).surface  = bdy::x_plane; // planes, cylinder, spheres, or a files
+            boundary(0).value    = 0.0;
+            boundary(0).hydro_bc = bdy::reflected;
+
+            // Tag Y plane
+            boundary(1).surface  = bdy::y_plane;
+            boundary(1).value    = 0.0;
+            boundary(1).hydro_bc = bdy::reflected;
+
+            // Tag Z plane
+            boundary(2).surface  = bdy::z_plane;
+            boundary(2).value    = 0.0;
+            boundary(2).hydro_bc = bdy::reflected;
+
+            // Tag X plane
+            boundary(3).surface  = bdy::x_plane; // planes, cylinder, spheres, or a files
+            boundary(3).value    = 1.2;
+            boundary(3).hydro_bc = bdy::reflected;
+
+            // Tag Y plane
+            boundary(4).surface  = bdy::y_plane;
+            boundary(4).value    = 1.2;
+            boundary(4).hydro_bc = bdy::reflected;
+
+            // Tag Z plane
+            boundary(5).surface  = bdy::z_plane;
+            boundary(5).value    = 1.2;
+            boundary(5).hydro_bc = bdy::reflected;
+        });  // end RUN
+
+
+        // ---------------------------------------------------------------------
+        //    read in supplied mesh
+        // ---------------------------------------------------------------------
+        read_mesh_ensight(mesh_file, mesh, node, elem, corner, num_dims, rk_num_bins);
+        mesh.build_corner_connectivity();
+        mesh.build_elem_elem_connectivity();
+        mesh.build_patch_connectivity();
+        mesh.build_node_node_connectivity();
+
+        // ---------------------------------------------------------------------
+        //    allocate memory
+        // ---------------------------------------------------------------------
+
+        // shorthand names
+        const size_t num_nodes   = mesh.num_nodes;
+        const size_t num_elems   = mesh.num_elems;
+        const size_t num_corners = mesh.num_corners;
+
+        // allocate elem_statev
+        elem.statev = CArray<double>(num_elems, num_state_vars);
+
+        // --- make dual views of data on CPU and GPU ---
+        //  Notes:
+        //     Instead of using a struct of dual types like the mesh type,
+        //     individual dual views will be made for all the state
+        //     variables.  The motivation is to reduce memory movement
+        //     when passing state into a function.  Passing a struct by
+        //     reference will copy the meta data and pointers for the
+        //     variables held inside the struct.  Since all the mesh
+        //     variables are typically used by most functions, a single
+        //     mesh struct or passing the arrays will be roughly equivalent
+        //     for memory movement.
+
+        // Dual Views of the individual node struct variables
+        node_coords = DViewCArrayKokkos<double>(&node.coords(0, 0, 0), rk_num_bins, num_nodes, num_dims);
+        node_vel = DViewCArrayKokkos<double> (&node.vel(0, 0, 0), rk_num_bins, num_nodes, num_dims);
+        node_mass = DViewCArrayKokkos<double> (&node.mass(0), num_nodes);
+
+        // create Dual Views of the individual elem struct variables
+        elem_den = DViewCArrayKokkos<double> (&elem.den(0), num_elems);
+        elem_pres = DViewCArrayKokkos<double> (&elem.pres(0), num_elems);
+        elem_stress = DViewCArrayKokkos<double> (&elem.stress(0, 0, 0, 0), rk_num_bins, num_elems, 3, 3);  // always 3D even in 2D-RZ
+        elem_sspd = DViewCArrayKokkos<double> (&elem.sspd(0), num_elems);
+        elem_sie = DViewCArrayKokkos<double> (&elem.sie(0, 0), rk_num_bins,  num_elems);
+        elem_vol = DViewCArrayKokkos<double> (&elem.vol(0), num_elems);
+        elem_div = DViewCArrayKokkos<double> (&elem.div(0), num_elems);
+        elem_mass = DViewCArrayKokkos<double> (&elem.mass(0), num_elems);
+        elem_mat_id = DViewCArrayKokkos<size_t> (&elem.mat_id(0), num_elems);
+        elem_statev = DViewCArrayKokkos<double> (&elem.statev(0, 0), num_elems, num_state_vars);
+
+        // create Dual Views of the corner struct variables
+        corner_force = DViewCArrayKokkos<double> (&corner.force(0, 0), num_corners, num_dims);
+        corner_mass = DViewCArrayKokkos<double> (&corner.mass(0), num_corners);
+
+        // ---------------------------------------------------------------------
+        //   calculate geometry
+        // ---------------------------------------------------------------------
+        node_coords.update_device();
+        Kokkos::fence();
+
+        get_vol(elem_vol, node_coords, mesh);
+
+        setup_sgh(
+            material,
+            mat_fill,
+            boundary,
+            mesh,
+            node_coords,
+            node_vel,
+            node_mass,
+            elem_den,
+            elem_pres,
+            elem_stress,
+            elem_sspd,
+            elem_sie,
+            elem_vol,
+            elem_mass,
+            elem_mat_id,
+            elem_statev,
+            state_vars,
+            corner_mass,
+            num_fills,
+            rk_num_bins,
+            num_bcs,
+            num_materials,
+            num_state_vars );
+
+        // intialize time, time_step, and cycles
+        time_value = 0.0;
+        dt = dt_start;
+        graphics_id       = 0;
+        graphics_times(0) = 0.0;
+        graphics_time     = graphics_dt_ival; // the times for writing graphics dump
+
+    }
+        
 
     void run(){
+        
         std::cout<<"In run function in sgh solver"<<std::endl;
+        
+        solve(material,
+                  boundary,
+                  mesh,
+                  node_coords,
+                  node_vel,
+                  node_mass,
+                  elem_den,
+                  elem_pres,
+                  elem_stress,
+                  elem_sspd,
+                  elem_sie,
+                  elem_vol,
+                  elem_div,
+                  elem_mass,
+                  elem_mat_id,
+                  elem_statev,
+                  corner_force,
+                  corner_mass,
+                  time_value,
+                  time_final,
+                  dt_max,
+                  dt_min,
+                  dt_cfl,
+                  graphics_time,
+                  graphics_cyc_ival,
+                  graphics_dt_ival,
+                  cycle_stop,
+                  rk_num_stages,
+                  dt,
+                  fuzz,
+                  tiny,
+                  small,
+                  graphics_times,
+                  graphics_id);
+
     }
+
+
+    void setup_sgh(
+        const CArrayKokkos<material_t>&  material,
+        const CArrayKokkos<mat_fill_t>&  mat_fill,
+        const CArrayKokkos<boundary_t>&  boundary,
+        mesh_t&                          mesh,
+        const DViewCArrayKokkos<double>& node_coords,
+        DViewCArrayKokkos<double>&       node_vel,
+        DViewCArrayKokkos<double>&       node_mass,
+        const DViewCArrayKokkos<double>& elem_den,
+        const DViewCArrayKokkos<double>& elem_pres,
+        const DViewCArrayKokkos<double>& elem_stress,
+        const DViewCArrayKokkos<double>& elem_sspd,
+        const DViewCArrayKokkos<double>& elem_sie,
+        const DViewCArrayKokkos<double>& elem_vol,
+        const DViewCArrayKokkos<double>& elem_mass,
+        const DViewCArrayKokkos<size_t>& elem_mat_id,
+        const DViewCArrayKokkos<double>& elem_statev,
+        const CArrayKokkos<double>&      state_vars,
+        const DViewCArrayKokkos<double>& corner_mass,
+        const size_t                     num_fills,
+        const size_t                     rk_num_bins,
+        const size_t                     num_bcs,
+        const size_t                     num_materials,
+        const size_t                     num_state_vars);
 
     void write_outputs(
         const mesh_t&              mesh,
@@ -158,16 +518,16 @@ public:
 
     // **** Functions defined in eos.cpp **** //
     // NOTE: This should be moved up so multiple solvers can use the ideal gas equation
-    KOKKOS_FUNCTION
-    void ideal_gas(
-        const DViewCArrayKokkos<double>& elem_pres,
-        const DViewCArrayKokkos<double>& elem_stress,
-        const size_t                     elem_gid,
-        const size_t                     mat_id,
-        const DViewCArrayKokkos<double>& elem_state_vars,
-        const DViewCArrayKokkos<double>& elem_sspd,
-        const double                     den,
-        const double                     sie);
+    // KOKKOS_FUNCTION
+    // void ideal_gas(
+    //     const DViewCArrayKokkos<double>& elem_pres,
+    //     const DViewCArrayKokkos<double>& elem_stress,
+    //     const size_t                     elem_gid,
+    //     const size_t                     mat_id,
+    //     const DViewCArrayKokkos<double>& elem_state_vars,
+    //     const DViewCArrayKokkos<double>& elem_sspd,
+    //     const double                     den,
+    //     const double                     sie);
 
     // **** Functions defined in force_sgh.cpp **** //
     void get_force(
@@ -460,31 +820,31 @@ public:
         const double                     rk_alpha);
 
 
-    KOKKOS_FUNCTION
-    void user_strength_model_vpsc(
-        const DViewCArrayKokkos<double>& elem_pres,
-        const DViewCArrayKokkos<double>& elem_stress,
-        const size_t                     elem_gid,
-        const size_t                     mat_id,
-        const DViewCArrayKokkos<double>& elem_state_vars,
-        const DViewCArrayKokkos<double>& elem_sspd,
-        const double                     den,
-        const double                     sie,
-        const ViewCArrayKokkos<double>&  vel_grad,
-        const ViewCArrayKokkos<size_t>&  elem_node_gids,
-        const DViewCArrayKokkos<double>& node_coords,
-        const DViewCArrayKokkos<double>& node_vel,
-        const double                     vol,
-        const double                     dt,
-        const double                     rk_alpha);
+    // KOKKOS_FUNCTION
+    // void user_strength_model_vpsc(
+    //     const DViewCArrayKokkos<double>& elem_pres,
+    //     const DViewCArrayKokkos<double>& elem_stress,
+    //     const size_t                     elem_gid,
+    //     const size_t                     mat_id,
+    //     const DViewCArrayKokkos<double>& elem_state_vars,
+    //     const DViewCArrayKokkos<double>& elem_sspd,
+    //     const double                     den,
+    //     const double                     sie,
+    //     const ViewCArrayKokkos<double>&  vel_grad,
+    //     const ViewCArrayKokkos<size_t>&  elem_node_gids,
+    //     const DViewCArrayKokkos<double>& node_coords,
+    //     const DViewCArrayKokkos<double>& node_vel,
+    //     const double                     vol,
+    //     const double                     dt,
+    //     const double                     rk_alpha);
 
-    // **** Functions defined in user_mat_init.cpp **** //
-    // NOTE: Pull up into high level
-    void user_model_init(
-        const DCArrayKokkos<double>& file_state_vars,
-        const size_t                 num_state_vars,
-        const size_t                 mat_id,
-        const size_t                 num_elems);
+    // // **** Functions defined in user_mat_init.cpp **** //
+    // // NOTE: Pull up into high level
+    // void user_model_init(
+    //     const DCArrayKokkos<double>& file_state_vars,
+    //     const size_t                 num_state_vars,
+    //     const size_t                 mat_id,
+    //     const size_t                 num_elems);
 
 };
 

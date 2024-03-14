@@ -21,7 +21,7 @@
 // -----------------------------------------------------------------------------
 // The function to read in the state vars for a user supplied model
 // ------------------------------------------------------------------------------
-void SGH::user_model_init(const DCArrayKokkos<double>& file_state_vars,
+void user_model_init(const DCArrayKokkos<double>& file_state_vars,
                      const size_t                 num_state_vars,
                      const size_t                 mat_id,
                      const size_t                 num_elems)

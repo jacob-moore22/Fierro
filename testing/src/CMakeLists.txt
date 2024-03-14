@@ -73,7 +73,7 @@ elseif (THREADS)
   add_definitions(-DHAVE_THREADS=1)
 endif()
 
+
+
 add_executable(Fierro main.cpp solver.cpp )
-
-
 target_link_libraries(Fierro PRIVATE matar sgh_solver Kokkos::kokkos)
