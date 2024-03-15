@@ -73,6 +73,7 @@ elseif (THREADS)
   add_definitions(-DHAVE_THREADS=1)
 endif()
 
+include_directories(common)
 
 
 add_executable(Fierro main.cpp solver.cpp )

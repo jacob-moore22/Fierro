@@ -31,17 +31,14 @@
  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **********************************************************************************************/
+#ifndef FIERRO_IO_H
+#define FIERRO_IO_H
 
 
-// #include "utilities.h"
 #include "matar.h"
-// #include "elements.h"
-
 #include "mesh.h"
 #include "state.h"
 
-
-// #include "MeshBuilder.h"
 #include <map>
 #include <memory>
 
@@ -50,37 +47,33 @@ class MeshReader
 {
 public:
 
-    mesh_t mesh;
-
     char* mesh_file_ = NULL;
 
-   
-
-    MeshReader();//Simulation_Parameters& _simparam);
+    MeshReader(){}//Simulation_Parameters& _simparam);
     
-    virtual ~MeshReader();
+    ~MeshReader() = default;
 
-
-
-    void read_mesh(char* MESH){
-
-        mesh_file = MESH;
-
-        // Check mesh file extension
-        // and read based on extension
-
-        read_mesh_ensight( mesh_file, 3);
+    void set_mesh_file(char* MESH){
+        mesh_file_ = MESH;
     }
 
-    void read_mesh_ensight(
-        char*        MESH
-        const size_t num_dims)
-    {
-        if(MESH == NULL){
+    // Reads and initializes the mesh and geometric state entities
+    void read_mesh(mesh_t &mesh, elem_t &elem, node_t &node, corner_t &corner, int num_dims, int rk_num_bins){
+
+        if(mesh_file_ == NULL){
             printf("No mesh given\n");
             exit(0);
         }
+        
+        // Check mesh file extension
+        // and read based on extension
+        read_ensight_mesh(mesh, elem, node, corner, num_dims, rk_num_bins);
 
+    }
+
+    void read_ensight_mesh(mesh_t &mesh, elem_t &elem, node_t &node, corner_t &corner, int num_dims, int rk_num_bins)
+    {
+        
         const size_t rk_level = 0;
 
         FILE* in;
@@ -93,7 +86,7 @@ public:
         }
 
         // read the mesh    WARNING: assumes a .geo file
-        in = fopen(MESH, "r");
+        in = fopen(mesh_file_, "r");
 
         // skip 8 lines
         for (int j = 1; j <= 8; j++)
@@ -205,8 +198,8 @@ public:
         fclose(in);
 
         return;
-
     }
     
 };
 
+#endif // end Header Guard

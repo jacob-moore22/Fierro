@@ -52,7 +52,7 @@
 
 
 
-Solver::Solver(char* MESH) // Simulation_Parameters& _simparam) : simparam(_simparam)
+Solver::Solver() // Simulation_Parameters& _simparam) : simparam(_simparam)
 {
     
 }

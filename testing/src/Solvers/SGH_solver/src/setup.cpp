@@ -61,6 +61,7 @@ void SGH::setup_sgh(const CArrayKokkos<material_t>&  material,
            const size_t                     num_state_vars
            )
 {
+    
     // --- calculate bdy sets ---//
     mesh.init_bdy_sets(num_bcs);
     printf("Num BC's = %lu\n", num_bcs);

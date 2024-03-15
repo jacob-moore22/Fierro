@@ -39,6 +39,7 @@
 #include "solver.h"
 #include "mesh.h"
 #include "state.h"
+#include "io_utils.h"
 
 
 
@@ -62,102 +63,18 @@ public:
 
     char* mesh_file;
 
-    // ==============================================================================
-    //   Variables, setting default inputs
-    // ==============================================================================
+    MeshReader* reader;
 
-    // --- num vars ----
-    size_t num_dims = 3;
-
-    size_t num_materials;
-    size_t num_state_vars;
-
-    size_t num_fills;
-    size_t num_bcs;
-
-    // --- Graphics output variables ---
-    size_t graphics_id       = 0;
-    size_t graphics_cyc_ival = 50;
-
-    CArray<double> graphics_times;
-    double         graphics_dt_ival = 1.0e8;
-    double         graphics_time    = graphics_dt_ival; // the times for writing graphics dump
-
-    // --- Time and cycling variables ---
-    double time_value = 0.0;
-    double time_final = 1.e16;
-    double dt       = 1.e-8;
-    double dt_max   = 1.0e-2;
-    double dt_min   = 1.0e-8;
-    double dt_cfl   = 0.4;
-    double dt_start = 1.0e-8;
-
-    size_t rk_num_stages = 2;
-    size_t rk_num_bins   = 2;
-
-    size_t cycle      = 0;
-    size_t cycle_stop = 1000000000;
-
-    // --- Precision variables ---
-    double fuzz  = 1.0e-16; // machine precision
-    double tiny  = 1.0e-12; // very very small (between real_t and single)
-    double small = 1.0e-8;   // single precision
-
-
-    // ---------------------------------------------------------------------
-    //    state data type declarations
-    // ---------------------------------------------------------------------
-    node_t                   node;
-    elem_t                   elem;
-    corner_t                 corner;
-    CArrayKokkos<material_t> material;
-    int max_num_state_vars = 6;
-    CArrayKokkos<double>     state_vars; // array to hold init model variables
-
-    // ---------------------------------------------------------------------
-    //    mesh data type declarations
-    // ---------------------------------------------------------------------
-    mesh_t                   mesh;
-    CArrayKokkos<mat_fill_t> mat_fill;
-    CArrayKokkos<boundary_t> boundary;
-
-    // Dual views for nodal data
-    DViewCArrayKokkos<double> node_coords;
-    DViewCArrayKokkos<double> node_vel;
-    DViewCArrayKokkos<double> node_mass;
-
-    // Dual views for element data
-    DViewCArrayKokkos<double> elem_den;
-    DViewCArrayKokkos<double> elem_pres;
-    DViewCArrayKokkos<double> elem_stress;
-    DViewCArrayKokkos<double> elem_sspd;
-    DViewCArrayKokkos<double> elem_sie;
-    DViewCArrayKokkos<double> elem_vol;
-    DViewCArrayKokkos<double> elem_div;
-    DViewCArrayKokkos<double> elem_mass;
-    DViewCArrayKokkos<size_t> elem_mat_id;
-    DViewCArrayKokkos<double> elem_statev;
-
-
-    // Dual Views of the corner struct variables
-    DViewCArrayKokkos<double> corner_force;
-    DViewCArrayKokkos<double> corner_mass;
-
-
-
-    SGH(char* MESH_FILE) : Solver(MESH_FILE){//SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
-
-        mesh_file = MESH_FILE;
-
+    SGH(MeshReader &io) : Solver(){//SGH_Parameters& params, Solver* Solver_Pointer, std::shared_ptr<mesh_t> mesh_in, const int my_fea_module_index = 0);
+        reader = &io;
     } 
     ~SGH() = default;
 
-    // initialize data for boundaries of the model and storage for boundary conditions and applied loads
-    // void sgh_interface_setup(node_t& node, elem_t& elem, corner_t& corner){};
 
-    void setup(){
-
-        std::cout<<"In setup function in sgh solver"<<std::endl;
+    // Initialize data for the SGH solver
+    // This will be where we take in parsed data from YAML
+    void initialize(){
+        std::cout<<"In initialize function in sgh solver"<<std::endl;
 
         // Dimensions
         num_dims = 3;
@@ -272,11 +189,18 @@ public:
             boundary(5).hydro_bc = bdy::reflected;
         });  // end RUN
 
-
         // ---------------------------------------------------------------------
         //    read in supplied mesh
         // ---------------------------------------------------------------------
-        read_mesh_ensight(mesh_file, mesh, node, elem, corner, num_dims, rk_num_bins);
+        // read_mesh_ensight(mesh_file, mesh, node, elem, corner, num_dims, rk_num_bins);
+
+        reader->read_mesh(mesh, elem, node, corner, num_dims, rk_num_bins);
+
+
+        std::cout<<"Num elements = "<<mesh.num_elems<<std::endl;
+        std::cout<<"Num nodes = "<<mesh.num_nodes<<std::endl;
+
+
         mesh.build_corner_connectivity();
         mesh.build_elem_elem_connectivity();
         mesh.build_patch_connectivity();
@@ -335,6 +259,16 @@ public:
 
         get_vol(elem_vol, node_coords, mesh);
 
+        // intialize time, time_step, and cycles
+        time_value = 0.0;
+        dt = dt_start;
+        graphics_id       = 0;
+        graphics_times(0) = 0.0;
+        graphics_time     = graphics_dt_ival; // the times for writing graphics dump
+    }
+
+
+    void setup(){
         setup_sgh(
             material,
             mat_fill,
@@ -359,14 +293,6 @@ public:
             num_bcs,
             num_materials,
             num_state_vars );
-
-        // intialize time, time_step, and cycles
-        time_value = 0.0;
-        dt = dt_start;
-        graphics_id       = 0;
-        graphics_times(0) = 0.0;
-        graphics_time     = graphics_dt_ival; // the times for writing graphics dump
-
     }
         
 

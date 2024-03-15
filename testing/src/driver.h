@@ -33,10 +33,11 @@
  **********************************************************************************************/
 
 // #include "matar.h"
+
+
+#include "io_utils.h"
+
 #include "solver.h"
-
-// #include "io_utils.h"
-
 
 // Headers for solver classes
 #include "sgh_solver.h"
@@ -48,30 +49,32 @@ public:
 
     char* mesh_file;
 
+    MeshReader mesh_reader;
+
     Driver(char* MESH){
         mesh_file = MESH;
     };//Simulation_Parameters& _simparam);
-    ~Driver(){
+    ~Driver(){};
 
-    };
-
+    // Initialize driver data.  Solver type, number of solvers 
+    // Will be parsed from YAML input
     void initialize(int solver_count){
 
         std::cout<<"Inside driver initialize"<<std::endl;
         std::cout<<"Num solvers = "<< solver_count <<std::endl;
-
         num_solvers = solver_count;
 
-        SGH *sgh_solver1 = new SGH(mesh_file);
 
-        SGH *sgh_solver2 = new SGH(mesh_file);
+        mesh_reader.set_mesh_file(mesh_file);
 
-        solvers.push_back(sgh_solver1);
-        solvers.push_back(sgh_solver2);
+
+        SGH *sgh_solver = new SGH(mesh_reader);
+
+        sgh_solver->initialize();
+        solvers.push_back(sgh_solver);
     }
     
     void setup() {
-
         std::cout<<"Inside driver setup"<<std::endl;
         for (auto & solver : solvers) {
             solver->setup();
@@ -79,7 +82,6 @@ public:
     }
 
     void run(){
-
         std::cout<<"Inside driver run"<<std::endl;
         for (auto & solver : solvers) {
             solver->run();
@@ -87,14 +89,12 @@ public:
     }
 
     void finalize(){
-
         std::cout<<"Inside driver finalize"<<std::endl;
         for (auto & solver : solvers) {
             if (solver->finalize_flag){
                 solver->solver_finalize();
             }
         }
-
         // destroy FEA modules
         for (auto & solver : solvers)
         {
